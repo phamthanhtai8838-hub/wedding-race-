@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Wedding Race - TÀI ❤️ CƯƠNG</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; text-align: center; background: #fff0f3; margin: 0; }
+    .card { background: white; padding: 25px 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(214,51,132,0.15); max-width: 400px; margin: 20px auto; }
+    h2 { color: #d63384; margin-top: 5px; font-size: 24px; }
+    .avatar-box { font-size: 75px; margin: 15px 0; }
+    .name-badge { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 5px; }
+    .status-text { color: #28a745; font-size: 18px; font-weight: bold; margin: 10px 0; }
+    .note { color: #666; font-size: 15px; line-height: 1.5; }
+    .edit-btn { background: none; border: 1px solid #d63384; color: #d63384; padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; margin-top: 15px; }
+    #edit-modal { display: none; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 15px; }
+    input { width: 85%; padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; text-align: center; }
+    .save-btn { margin-top: 10px; padding: 10px 25px; background: #d63384; color: white; border: none; border-radius: 8px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🏁 WEDDING RACE 🏁</h2>
+    <p style="color: #888; margin: 0;">Tài ❤️ Cương</p>
+
+    <!-- Khu vực hiển thị trạng thái đã vào game ngay lập tức -->
+    <div class="avatar-box" id="my-avatar">...</div>
+    <div class="name-badge" id="my-name">Đang vào phòng...</div>
+    <div class="status-text">✅ BẠN ĐÃ Ở VẠCH XUẤT PHÁT!</div>
+    <p class="note">Hãy nhìn lên màn hình TV / Máy chiếu để cổ vũ cho nhân vật của bạn nhé! 🎉</p>
+
+    <!-- Tùy chọn đổi tên nhanh nếu muốn (không bắt buộc) -->
+    <button class="edit-btn" onclick="toggleEdit()">Đổi tên nhân vật</button>
+
+    <div id="edit-modal">
+      <input type="text" id="new-name" placeholder="Nhập tên của bạn..." maxlength="12">
+      <br>
+      <button class="save-btn" onclick="saveName()">Cập nhật tên</button>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    const animals = ['🐰', '🐻', '🐱', '🐶', '🐸', '🐼', '🐯', '🦊', '🦁', '🐵'];
+
+    // 1. Tự động sinh con vật và tên ngẫu nhiên
+    const randomAvatar = animals[Math.floor(Math.random() * animals.length)];
+    const randomId = Math.floor(10 + Math.random() * 90);
+    let playerName = "Khách #" + randomId;
+
+    // Hiển thị ngay lên màn hình
+    document.getElementById('my-avatar').innerText = randomAvatar;
+    document.getElementById('my-name').innerText = playerName;
+
+    // 2. KÍCH VÀO LINK LÀ TỰ GỬI LÊN SERVER LUÔN (Không cần bấm gì)
+    socket.on('connect', () => {
+      socket.emit('join_game', { name: playerName, avatar: randomAvatar });
+    });
+
+    // Hàm cho khách nếu muốn sửa tên
+    function toggleEdit() {
+      const modal = document.getElementById('edit-modal');
+      modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function saveName() {
+      const input = document.getElementById('new-name').value.trim();
+      if (input) {
+        playerName = input;
+        document.getElementById('my-name').innerText = playerName;
+        socket.emit('join_game', { name: playerName, avatar: randomAvatar });
+        toggleEdit();
+      }
+    }
+
+    socket.on('game_reset', () => {
+      // Ván mới tự động vào lại luôn
+      socket.emit('join_game', { name: playerName, avatar: randomAvatar });
+    });
+  </script>
+</body>
+</html>
